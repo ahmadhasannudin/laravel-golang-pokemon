@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./laravel-pokemon:/var/www
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - laravel
+    networks:
+      - app-network
+
+  laravel:
+    image: php:8.3-fpm
+    container_name: laravel-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./laravel-pokemon:/var/www
+      - ./laravel-pokemon/vendor:/var/www/vendor
+      - ./laravel-pokemon/storage:/var/www/storage
+    networks:
+      - app-network
+    depends_on:
+      - golang
+    command: sh -c "curl -sS https://getcomposer.org/installer | php && php composer.phar install && php artisan storage:link && php-fpm"
+
+  golang:
+    image: golang:1.20-alpine
+    container_name: golang-app
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./go-pokemon:/app
+    command: sh -c "go mod download && go build -o main . && ./main"
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
