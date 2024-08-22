@@ -1,5 +1,5 @@
 ```bash
-docker compose up
+docker compose up --build
 ```
 FE= http://localhost:8000
 BE= http://localhost:8080
